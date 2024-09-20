@@ -3,18 +3,20 @@
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
+#include <windows.h>
 
 #define MAX 100
 
 typedef struct {
     int id;
-    char clientName[50];
+    char clientnom[50];
     char reason[100];
     char description[255];
     char category[50];
+    char priorite[20];
     char status[20];
     char date[20];
-} Claim;
+} recla;
 
 typedef struct {
     char username[20];
@@ -22,98 +24,233 @@ typedef struct {
     int isAgent;
 } User;
 
-Claim claims[MAX];
+recla claims[MAX];
 User users[MAX];
 int count = 0;
 int userCount = 0;
 
-
-int validatePassword(char *username, char *password) {
-    int upper = 0, lower = 0, digit = 0, special = 0;
-    for (int i = 0; i < strlen(password); i++) {
-        if (isupper(password[i])) upper = 1;
-        else if (islower(password[i])) lower = 1;
-        else if (isdigit(password[i])) digit = 1;
-        else if (ispunct(password[i])) special = 1;
+int validatePassword(const char *username, const char *password) {
+    if (username == NULL || password == NULL) {
+        return 0;
     }
-    return (strlen(password) >= 8 && upper && lower && digit && special && !strstr(password, username));
+
+    int len = strlen(password),i;
+    if (len < 8) {
+        return 0;
+    }
+
+    int upper = 0, lower = 0, digit = 0, special = 0;
+
+    for ( i = 0; i < len; i++) {
+        if (isupper(password[i])) {
+            upper = 1;
+        } else if (islower(password[i])) {
+            lower = 1;
+        } else if (isdigit(password[i])) {
+            digit = 1;
+        } else if (ispunct(password[i])) {
+            special = 1;
+        }
+    }
+    if (strstr(password, username) != NULL) {
+        return 0;
+    }
+
+    return upper && lower && digit && special;
+}
+
+int checkUsernameInPassword(char *username, char *password) {
+    if (strstr(password, username) != NULL) {
+        printf("le mot de passe ne doit pas contenir le nom d'utilisateur.\n");
+        return 0;
+    }
+    return 1;
 }
 
 void signup() {
     char username[20], password[20];
-    printf("veuillez entrer votre username : ");
+
+    printf("entrer votre username : ");
     fgets(username, sizeof(username), stdin);
-    username[strcspn(username, "\n")] = 0;
-    printf("veuillez entrer votre mot de pass : ");
+    username[strcspn(username, "\n")] = '\0';
+
+    printf("entrer votre mot de passe : ");
     fgets(password, sizeof(password), stdin);
-    password[strcspn(password, "\n")] = 0;
+    password[strcspn(password, "\n")] = '\0';
 
     if (validatePassword(username, password)) {
-        strcpy(users[userCount].username, username);
-        strcpy(users[userCount].password, password);
-        users[userCount].isAgent = 0;
-        userCount++;
-        printf("votre compt a est bien cree\n");
+        printf("Compte cree avec succes\n");
     } else {
-        printf("le mot de passe ne respecte pas les requirements .\n");
+        printf("le mot de passe ne respecte pas les requis \n");
     }
 }
-
-int signin(char *clientName) {
+int signin(char *clientnom) {
     char username[20], password[20];
-    printf("veuillez entrer votre username: ");
-    fgets(username, sizeof(username), stdin);
-    username[strcspn(username, "\n")] = 0;
-    printf("veuillez entrer votre mot de pass : ");
-    fgets(password, sizeof(password), stdin);
-    password[strcspn(password, "\n")] = 0;
+    int n = 0;
 
-    for (int i = 0; i < userCount; i++) {
-        if (strcmp(users[i].username, username) == 0 && strcmp(users[i].password, password) == 0) {
-            strcpy(clientName, username);
-            return users[i].isAgent;
+    while (n < 3) {
+        printf("Veuillez entrer votre username: ");
+        fgets(username, sizeof(username), stdin);
+        username[strcspn(username, "\n")] = 0;
+        printf("Veuillez entrer votre mot de passe: ");
+        fgets(password, sizeof(password), stdin);
+        password[strcspn(password, "\n")] = 0;
+
+        for (int i = 0; i < userCount; i++) {
+            if (strcmp(users[i].username, username) == 0 && strcmp(users[i].password, password) == 0) {
+                strcpy(clientnom, username);
+                return users[i].isAgent;
+            }
+        }
+
+        n++;
+        printf("\nnom utilisateur ou mot de passe incorrect.\n\n");
+        if(n==3)
+        printf("\t\n--------------------------------------------------\n");
+
+        if (n == 3) {
+            printf("\nattendez 10 secondes ...\n");
+            Sleep(10000);
         }
     }
-    printf("nom d'utilisateur ou mot de passe invalide \n");
+
     return -1;
+
+}
+    void Priorite(recla *reclamation) {
+    if (strstr(reclamation->description, "urgent") != NULL) {
+        strcpy(reclamation->priorite, "haute");
+        strcpy(reclamation->status, "en cours");
+    } else if (strstr(reclamation->description, "rapide") != NULL) {
+        strcpy(reclamation->priorite, "moyenne");
+        strcpy(reclamation->status, "en cours");
+    } else {
+        strcpy(reclamation->priorite, "basse");
+        strcpy(reclamation->status, "en cours");
+    }
 }
 
-void addClaim(char *clientName) {
+
+void addrecla(char *clientName) {
     if (count >= MAX) {
         printf("impossible ajouter autres revendications, limite de memoire atteinte.\n");
         return;
     }
 
-    Claim newClaim;
-    newClaim.id = count + 1;
-    strcpy(newClaim.clientName, clientName);
+    recla newrecla;
+    newrecla.id = count + 1;
+    strcpy(newrecla.clientnom, clientName);
 
     printf("veuillez entrer reclamation reason : ");
-    fgets(newClaim.reason, sizeof(newClaim.reason), stdin);
-    newClaim.reason[strcspn(newClaim.reason, "\n")] = 0;
+    fgets(newrecla.reason, sizeof(newrecla.reason), stdin);
+    newrecla.reason[strcspn(newrecla.reason, "\n")] = 0;
 
     printf("veuillez entrer reclamation description : ");
-    fgets(newClaim.description, sizeof(newClaim.description), stdin);
-    newClaim.description[strcspn(newClaim.description, "\n")] = 0;
+    fgets(newrecla.description, sizeof(newrecla.description), stdin);
+    newrecla.description[strcspn(newrecla.description, "\n")] = 0;
 
     printf("veuillez entrer reclamation category : ");
-    fgets(newClaim.category, sizeof(newClaim.category), stdin);
-    newClaim.category[strcspn(newClaim.category, "\n")] = 0;
+    fgets(newrecla.category, sizeof(newrecla.category), stdin);
+    newrecla.category[strcspn(newrecla.category, "\n")] = 0;
 
-    strcpy(newClaim.status, "pending");
+    strcpy(newrecla.status, "en cours");
+    Priorite(&newrecla);
 
     time_t now = time(NULL);
     struct tm *t = localtime(&now);
-    strftime(newClaim.date, sizeof(newClaim.date), "%Y-%m-%d", t);
+    strftime(newrecla.date, sizeof(newrecla.date), "%Y-%m-%d", t);
 
-    claims[count++] = newClaim;
-    printf("reclamation ajoutee avec succes avec ID: %d\n", newClaim.id);
+    claims[count++] = newrecla;
+    printf("reclamation ajoute succes pour ID: %d et priorite : %s\n", newrecla.id, newrecla.priorite);
 }
 
-void viewMyClaims(char *clientName) {
+
+void searchBYidCat() {
+    int choice;
+    char searchCat[50];
+    char username[50];
+    char date[50];
+    int searchID;
+    int found = 0;
+
+    printf("\nrecherche une reclamation\n");
+    printf("1 - par ID de reclamation\n");
+    printf("2 - par categorie\n");
+    printf("3 - par username\n");
+    printf("4 - par Date\n");
+    printf("veuillez entrer votre choice: ");
+    scanf("%d",&choice);
+    getchar();
+
+    switch (choice) {
+        case 1:
+
+            printf("veuillez entrer ID de reclamation: ");
+            scanf("%d",&searchID);
+            getchar();
+            for (int i = 0; i < count; i++) {
+                if (claims[i].id == searchID) {
+                    printf("reclamation trouve:\n");
+                    printf("ID: %d\nNom du client: %s\nMotif: %s\nDescription: %s\nCategorie: %s\nStatut: %s\nDate: %s\n",
+                           claims[i].id, claims[i].clientnom, claims[i].reason, claims[i].description, claims[i].category, claims[i].status, claims[i].date);
+                    found = 1;
+                    break;
+                }
+            }
+            break;
+
+        case 2:
+
+            printf("veuillez entrer categorie: ");
+            fgets(searchCat, sizeof(searchCat), stdin);
+            searchCat[strcspn(searchCat, "\n")] = 0;
+            for (int i = 0; i < count; i++) {
+                if (strcmp(claims[i].category, searchCat) == 0) {
+                    printf("reclamation trouve:\n");
+                    printf("ID: %d\nNom du client: %s\nMotif: %s\nDescription: %s\nCategorie: %s\nStatut: %s\nDate: %s\n",
+                           claims[i].id, claims[i].clientnom, claims[i].reason, claims[i].description, claims[i].category, claims[i].status, claims[i].date);
+                    found = 1;
+                }
+            }
+            break;
+
+            case 3 : printf("entrer votre username : ");
+                        fgets(username,sizeof(username),stdin);
+                        username[strcspn(username,"\n")] = 0;
+
+                    for (int i = 0; i < count; i++) {
+                        if (strcmp(claims[i].clientnom, username) == 0) {
+                            printf("reclamation trouve:\n");
+                            printf("ID: %d, Client: %s, Motif: %s, Description: %s, Categorie: %s, Statut: %s, Date: %s\n",
+                            claims[i].id, claims[i].clientnom, claims[i].reason, claims[i].description, claims[i].category, claims[i].status, claims[i].date);
+            }
+        }
+        case  4 :
+            printf("entrer la date de la reclamation (format YYYY-MM-DD): ");
+            fgets(date, sizeof(date), stdin);
+            date[strcspn(date, "\n")] = 0;
+                    for (int i = 0; i < count; i++) {
+                        if (strcmp(claims[i].date, date) == 0) {
+                        printf("reclamation trouvee:\n");
+                        printf("ID: %d, Client: %s, Motif: %s, Description: %s, Categorie: %s, Statut: %s, Date: %s\n",
+                        claims[i].id, claims[i].clientnom, claims[i].reason, claims[i].description, claims[i].category, claims[i].status, claims[i].date);
+            }
+        }
+
+        default:
+            printf("Choice invalide. Veuillez ressayer.\n");
+            return;
+    }
+
+    if (!found) {
+        printf("aucune reclamation trouve pour le critere specifie.\n");
+    }
+}
+
+void viewMyrecla(char *clientName) {
     int found = 0;
     for (int i = 0; i < count; i++) {
-        if (strcmp(claims[i].clientName, clientName) == 0) {
+        if (strcmp(claims[i].clientnom, clientName) == 0) {
             printf("reclamation ID: %d\nReason: %s\nDescription: %s\nCategory: %s\nStatut: %s\nDate: %s\n",
                    claims[i].id, claims[i].reason, claims[i].description, claims[i].category, claims[i].status, claims[i].date);
             printf("-------------------------\n");
@@ -126,14 +263,14 @@ void viewMyClaims(char *clientName) {
     }
 }
 
-void modifyMyClaim(char *clientName) {
+void modifyMyrecla(char *clientName) {
     int claimID;
     printf("veuillez entrer reclamation ID pour modify: ");
     scanf("%d", &claimID);
     getchar();
 
     for (int i = 0; i < count; i++) {
-        if (claims[i].id == claimID && strcmp(claims[i].clientName, clientName) == 0) {
+        if (claims[i].id == claimID && strcmp(claims[i].clientnom, clientName) == 0) {
             printf("veuillez entrer nouveau reason pour reclamation: ");
             fgets(claims[i].reason, sizeof(claims[i].reason), stdin);
             claims[i].reason[strcspn(claims[i].reason, "\n")] = 0;
@@ -149,14 +286,14 @@ void modifyMyClaim(char *clientName) {
     printf("reclamation introuvable ou appartenant pas a %s.\n", clientName);
 }
 
-void deleteMyClaim(char *clientName) {
+void deleteMyrecla(char *clientName) {
     int claimID;
     printf("veuillez entrer reclamation ID pour suprimee: ");
     scanf("%d", &claimID);
     getchar();
 
     for (int i = 0; i < count; i++) {
-        if (claims[i].id == claimID && strcmp(claims[i].clientName, clientName) == 0) {
+        if (claims[i].id == claimID && strcmp(claims[i].clientnom, clientName) == 0) {
             for (int j = i; j < count - 1; j++) {
                 claims[j] = claims[j + 1];
             }
@@ -167,20 +304,49 @@ void deleteMyClaim(char *clientName) {
     }
     printf("reclamation introuvable ou n'appartenant pas a %s.\n", clientName);
 }
-
-void viewAllClaims() {
-    if (count == 0) {
-        printf("aucune reclamation disponible\n");
-        return;
+int cate(const char *description) {
+    if (strstr(description, "urgent") != NULL) {
+        return 1;
+    } else if (strstr(description, "rapide") != NULL) {
+        return 2;
+    } else if (strstr(description, "normale") != NULL) {
+        return 3;
+    } else {
+        return 4;
     }
+}
+
+void sortrecla() {
+    recla temp;
+        for (int i = 0; i < count - 1; i++) {
+        for (int j = i + 1; j < count; j++) {
+            if (cate(claims[i].description) > cate(claims[j].description)) {
+                temp = claims[i];
+                claims[i] = claims[j];
+                claims[j] = temp;
+            }
+        }
+    }
+
+    printf("\n=== reclamations triees par priorite ===\n");
     for (int i = 0; i < count; i++) {
-        printf("reclamation ID: %d\nClient Nom: %s\nReason: %s\nDescription: %s\nCategory: %s\nStatus: %s\nDate: %s\n",
-               claims[i].id, claims[i].clientName, claims[i].reason, claims[i].description, claims[i].category, claims[i].status, claims[i].date);
+        printf("ID: %d\nNom du client: %s\nDescription: %s\nCategorie: %s\nStatut: %s\nDate: %s\n",
+               claims[i].id, claims[i].clientnom, claims[i].description, claims[i].category, claims[i].status, claims[i].date);
         printf("-------------------------\n");
     }
 }
 
-void processClaim() {
+
+void viewAllrecla() {
+    if (count == 0) {
+        printf("aucune reclamation disponible\n");
+        return;
+    }
+    sortrecla();
+
+}
+
+void processrecla() {
     int claimID;
     printf("entrez l'ID de la reclamation pour traiter: ");
     scanf("%d",&claimID);
@@ -189,10 +355,10 @@ void processClaim() {
     for (int i = 0; i < count; i++) {
         if (claims[i].id == claimID) {
             printf("statut actuel: %s\n", claims[i].status);
-            printf("veuillez entrer nouveau statut (Pending/In Progress/Resolved/Closed): ");
+            printf("veuillez entrer nouveau statut (en cours/resolue/fermee): ");
             fgets(claims[i].status, sizeof(claims[i].status), stdin);
             claims[i].status[strcspn(claims[i].status, "\n")] = 0;
-            printf("Claim status updated successfully.\n");
+            printf("reclamation status modified succes.\n");
             return;
         }
     }
@@ -207,17 +373,19 @@ void adminMenu() {
         printf("2. traiter la reclamation\n");
         printf("3. ajouter un nouveau client\n");
         printf("4. ajouter/Supprimer un role d'agent\n");
+        printf("5. search par ID ou category ou username ou date\n");
         printf("0. deconnexion\n");
         printf("veuillez entrer votre choice: ");
         scanf("%d", &choice);
         getchar();
+        printf("\n*************************\n\n");
 
         switch (choice) {
             case 1:
-                viewAllClaims();
+                viewAllrecla();
                 break;
             case 2:
-                processClaim();
+                processrecla();
                 break;
             case 3:
                 signup();
@@ -231,7 +399,7 @@ void adminMenu() {
                     if (strcmp(users[i].username, username) == 0) {
                         users[i].isAgent = !users[i].isAgent;
                         if (users[i].isAgent) {
-                            printf("role agent attribue à l'utilisateur %s.\n", username);
+                            printf("role agent attribue a l'utilisateur %s.\n", username);
                         } else {
                             printf("role d'agent supprime de l'utilisateur %s.\n", username);
                         }
@@ -240,6 +408,9 @@ void adminMenu() {
                 }
                 break;
             }
+            case 5 :
+                searchBYidCat();
+                break;
             case 0:
                 printf("deconnexion comme admin...\n");
                 break;
@@ -261,19 +432,20 @@ void clientMenu(char *clientName) {
         printf("veuillez entrer votre choice: ");
         scanf("%d", &choice);
         getchar();
+        printf("\n*************************\n\n");
 
         switch (choice) {
             case 1:
-                addClaim(clientName);
+                addrecla(clientName);
                 break;
             case 2:
-                viewMyClaims(clientName);
+                viewMyrecla(clientName);
                 break;
             case 3:
-                modifyMyClaim(clientName);
+                modifyMyrecla(clientName);
                 break;
             case 4:
-                deleteMyClaim(clientName);
+                deleteMyrecla(clientName);
                 break;
             case 0:
                 printf("deconnexion ...\n");
@@ -293,14 +465,15 @@ void agentMenu(char *agentName) {
         printf("0. deconnexion\n");
         printf("veuillez entrer votre choice: ");
         scanf("%d", &choice);
+        printf("\n*************************\n\n");
         getchar();
 
         switch (choice) {
             case 1:
-                viewAllClaims();
+                viewAllrecla();
                 break;
             case 2:
-                processClaim();
+                processrecla();
                 break;
             case 0:
                 printf("deconnexion ...\n");
@@ -311,7 +484,7 @@ void agentMenu(char *agentName) {
     } while (choice != 0);
 }
 
-int signinAsAdmin() {
+int signinAdmin() {
     char username[20];
     char password[20];
     printf("veuillez entrer admin username: ");
@@ -321,36 +494,36 @@ int signinAsAdmin() {
     fgets(password, sizeof(password), stdin);
     password[strcspn(password, "\n")] = 0;
 
-    if (strcmp(username, "admin") == 0 && strcmp(password, "Admin@1234") == 0) {
+    if (strcmp(username, "abdo") == 0 && strcmp(password, "Abdo@3214") == 0) {
         printf("Connexion admini reussie.\n");
         printf("----------------------------\n");
         return 1;
     } else {
-        printf("La connexion de admin a echoue.\n");
-        printf("----------------------------\n");
+        printf("\nLa connexion de admin a echoue essayez au nouveau \n");
+        printf("----------------------------------------------------\n");
         return 0;
     }
 }
 
 int main() {
+
     int choice;
     do {
         printf("\n============================ MENU ============================\n");
-        printf("1. S'inscrire en tant que admin\n");
-        printf("2. S'inscrire en tant que client\n");
-        printf("3. Connectez-vous en tant que client\n");
-        printf("0. Exit\n");
-        printf("===============================================================\n");
+        printf("-     1 - Connectez vous en tant que admin                   -\n");
+        printf("-     2 - S'inscrire en tant que client                      -\n");
+        printf("-     3 - Connectez vous en tant que client                  -\n");
+        printf("-     4 - Exit                                               -\n");
+        printf("==============================================================\n");
         printf("Entrez votre choice: ");
         scanf("%d",&choice);
         getchar();
+        printf("\n*************************\n\n");
 
         switch (choice) {
             case 1:
-                if (signinAsAdmin()) {
+                if (signinAdmin()) {
                     adminMenu();
-                } else {
-                    printf("La connexion de admin a echouc. essayer a nouveau.\n");
                 }
                 break;
             case 2:
