@@ -59,32 +59,28 @@ int validatePassword(const char *username, const char *password) {
     return upper && lower && digit && special;
 }
 
-int checkUsernameInPassword(char *username, char *password) {
-    if (strstr(password, username) != NULL) {
-        printf("le mot de passe ne doit pas contenir le nom d'utilisateur.\n");
-        return 0;
-    }
-    return 1;
-}
 
 void signup() {
     char username[20], password[20];
-
-    printf("entrer votre username : ");
+    printf("veuillez entrer votre username : ");
     fgets(username, sizeof(username), stdin);
-    username[strcspn(username, "\n")] = '\0';
-
-    printf("entrer votre mot de passe : ");
+    username[strcspn(username, "\n")] = 0;
+    printf("veuillez entrer votre mot de pass : ");
     fgets(password, sizeof(password), stdin);
-    password[strcspn(password, "\n")] = '\0';
+    password[strcspn(password, "\n")] = 0;
 
     if (validatePassword(username, password)) {
-        printf("Compte cree avec succes\n");
+        strcpy(users[userCount].username, username);
+        strcpy(users[userCount].password, password);
+        users[userCount].isAgent = 0;
+        userCount++;
+        printf("votre compt a est bien cree\n");
     } else {
-        printf("le mot de passe ne respecte pas les requis \n");
+        printf("le mot de passe ne respecte pas les requirements .\n");
     }
 }
-int signin(char *clientnom) {
+
+int signin(char *clientName) {
     char username[20], password[20];
     int n = 0;
 
@@ -98,7 +94,7 @@ int signin(char *clientnom) {
 
         for (int i = 0; i < userCount; i++) {
             if (strcmp(users[i].username, username) == 0 && strcmp(users[i].password, password) == 0) {
-                strcpy(clientnom, username);
+                strcpy(clientName, username);
                 return users[i].isAgent;
             }
         }
@@ -117,6 +113,7 @@ int signin(char *clientnom) {
     return -1;
 
 }
+
     void Priorite(recla *reclamation) {
     if (strstr(reclamation->description, "urgent") != NULL) {
         strcpy(reclamation->priorite, "haute");
@@ -382,15 +379,22 @@ void adminMenu() {
 
         switch (choice) {
             case 1:
+                system("@cls||clear");
+                printf("\n");
                 viewAllrecla();
                 break;
             case 2:
+                system("@cls||clear");
+                printf("\n");
                 processrecla();
                 break;
             case 3:
+                system("@cls||clear");
+                printf("\n");
                 signup();
                 break;
             case 4: {
+                system("@cls||clear");
                 char username[20];
                 printf("saisissez le nom d'utilisateur pour attribuer/supprimer le role d'agent : ");
                 fgets(username, sizeof(username), stdin);
