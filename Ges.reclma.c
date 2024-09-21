@@ -7,15 +7,18 @@
 
 #define MAX 100
 
+                                    //admin username : abdo  || admin mot de pass : Abdo@3214
+
 typedef struct {
     int id;
     char clientnom[50];
     char reason[100];
-    char description[255];
+    char description[150];
     char category[50];
     char priorite[20];
     char status[20];
     char date[20];
+    char delai[20];
 } recla;
 
 typedef struct {
@@ -64,15 +67,15 @@ void signup() {
     char username[20], password[20];
     printf("veuillez entrer votre username : ");
     fgets(username, sizeof(username), stdin);
-    username[strcspn(username, "\n")] = 0;
+    username[strcspn(username, "\n")] = '\0';
     printf("veuillez entrer votre mot de pass : ");
     fgets(password, sizeof(password), stdin);
-    password[strcspn(password, "\n")] = 0;
+    password[strcspn(password, "\n")] = '\0';
 
     if (validatePassword(username, password)) {
         strcpy(users[userCount].username, username);
         strcpy(users[userCount].password, password);
-        users[userCount].isAgent = 0;
+        users[userCount].isAgent = '\0';
         userCount++;
         printf("votre compt a est bien cree\n");
     } else {
@@ -355,22 +358,113 @@ void processrecla() {
             printf("veuillez entrer nouveau statut (en cours/resolue/fermee): ");
             fgets(claims[i].status, sizeof(claims[i].status), stdin);
             claims[i].status[strcspn(claims[i].status, "\n")] = 0;
+
+            if (strcmp(claims[i].status, "resolue") == 0) {
+                time_t now = time(NULL);
+                struct tm *t = localtime(&now);
+                strftime(claims[i].delai, sizeof(claims[i].delai), "%Y-%m-%d", t);
+            }
+
             printf("reclamation status modified succes.\n");
             return;
         }
     }
     printf("reclamation non trouvee\n");
 }
+void taux() {
+    int resolvedCount = 0;
+    for (int i = 0; i < count; i++) {
+        if (strcmp(claims[i].status, "resolue") == 0) {
+            resolvedCount++;
+        }
+    }
+    if (count > 0) {
+        float rate = ((float)resolvedCount / count) * 100;
+        printf("taux de resolution: %.2f%%\n",rate);
+    } else {
+        printf("aucune reclamation soumise.\n");
+    }
+}
+void avergt() {
+    int total = 0;
+    int resoCount = 0;
+
+    for (int i = 0; i < count; i++) {
+        if (strcmp(claims[i].status, "resolue")==0) {
+            int difr = 1;
+            resoCount++;
+            claims[i].delai;
+            resoCount++;
+
+        }
+    }
+    if (resoCount > 0) {
+        int ave = total / resoCount;
+                if (ave == 0) {
+            printf("delai moyen de traitement des reclamations pour resulation est : less dun jour \n");
+        } else if (ave == 1) {
+            printf("delai moyen de traitement des reclamations pour resolation est : un jour \n");
+        } else {
+            printf("delai moyen de traitement des reclamations pour resulation est: %d jours \n", ave);
+        }
+    } else {
+        printf("aucun reclamation resolue pour calculer le moyen \n");
+    }
+}
+
+void rapport() {
+    time_t now = time(NULL);
+    struct tm *t = localtime(&now);
+    char datecurr[20];
+    strftime(datecurr, sizeof(datecurr), "%Y-%m-%d", t);
+
+    printf("======= Rapport journalier pour la date: %s =======\n",datecurr);
+
+    int found = 0, resolu = 0;
+
+    for (int i = 0; i < count; i++) {
+        if (strcmp(claims[i].date,datecurr) == 0) {
+            if (strcmp(claims[i].status, "resolue") == 0) {
+                printf("reclamation resolue aujourdhui:\n");
+                printf("ID: %d, Client: %s, Motif: %s, Description: %s, Categorie: %s, Date: %s\n",
+                    claims[i].id, claims[i].clientnom, claims[i].reason, claims[i].description, claims[i].category, claims[i].date);
+                printf("\n==========================================================\n");
+                printf("\n");
+                taux();
+                printf("\n-------------------------------------------\n\n");
+                avergt();
+                printf("\n\n========================================================\n\n");
+                resolu = 1;
+            } else {
+                printf("les reclamation aujourdhui :\n");
+                printf("ID: %d, Client: %s, Motif: %s, Description: %s, Categorie: %s, Statut: %s, Date: %s\n",
+                    claims[i].id, claims[i].clientnom, claims[i].reason, claims[i].description, claims[i].category, claims[i].status, claims[i].date);
+                printf("-------------------------\n");
+                found = 1;
+            }
+        }
+    }
+
+    if (!found) {
+        printf("aucun rrclamation aujourdhui.\n");
+    }
+
+    if (!resolu) {
+        printf("aucune reclamation resolue aujourdhui.\n");
+    }
+}
+
 
 void adminMenu() {
     int choice;
     do {
         printf("\n========== Admin Menu ==========\n");
-        printf("1. afficher toutes les reclamations\n");
-        printf("2. traiter la reclamation\n");
-        printf("3. ajouter un nouveau client\n");
-        printf("4. ajouter/Supprimer un role d'agent\n");
-        printf("5. search par ID ou category ou username ou date\n");
+        printf("1 - afficher toutes les reclamations\n");
+        printf("2 - traiter la reclamation\n");
+        printf("3 - ajouter un nouveau client\n");
+        printf("4 - ajouter/Supprimer un role d'agent\n");
+        printf("5 - search par ID ou category ou username ou date\n");
+        printf("6 - generer une rapport\n");
         printf("0. deconnexion\n");
         printf("veuillez entrer votre choice: ");
         scanf("%d", &choice);
@@ -414,6 +508,9 @@ void adminMenu() {
             }
             case 5 :
                 searchBYidCat();
+                break;
+            case 6 :
+                rapport();
                 break;
             case 0:
                 printf("deconnexion comme admin...\n");
@@ -499,11 +596,11 @@ int signinAdmin() {
     password[strcspn(password, "\n")] = 0;
 
     if (strcmp(username, "abdo") == 0 && strcmp(password, "Abdo@3214") == 0) {
-        printf("Connexion admini reussie.\n");
+        printf("Connexion comme admin reussie.\n");
         printf("----------------------------\n");
         return 1;
     } else {
-        printf("\nLa connexion de admin a echoue essayez au nouveau \n");
+        printf("\nla connexion de admin a echoue essayez au nouveau \n");
         printf("----------------------------------------------------\n");
         return 0;
     }
