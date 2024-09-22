@@ -266,18 +266,19 @@ void viewMyrecla(char *clientName) {
 void modifyMyrecla(char *clientName) {
     int claimID;
     printf("veuillez entrer reclamation ID pour modify: ");
-    scanf("%d", &claimID);
+    scanf("%d",&claimID);
     getchar();
 
 
     for (int i = 0; i < count; i++) {
-            time_t currtime = time(NULL);
+             time_t currtime = time(NULL);
             double diff = difftime(currtime,claims[i].date)/3600.0;
 
-            if(diff>24){
+            if(diff<24){
                 printf("tu ne peux pas modifer votre reclamtion apres 24h ! votre reclamation a cree a %s ",claims[i].date);
                 return ;
-            }
+            }else{
+
         if (claims[i].id == claimID && strcmp(claims[i].clientnom, clientName) == 0) {
             printf("veuillez entrer nouveau reason pour reclamation: ");
             fgets(claims[i].reason, sizeof(claims[i].reason), stdin);
@@ -291,6 +292,7 @@ void modifyMyrecla(char *clientName) {
             return;
         }
     }
+    }
     printf("reclamation introuvable ou appartenant pas a %s.\n", clientName);
 }
 
@@ -303,10 +305,10 @@ void deleteMyrecla(char *clientnom) {
     for (int i = 0; i < count; i++) {
             time_t cuurtime = time(NULL);
              double diff = difftime(cuurtime,claims[i].date)/3600;
-            if(diff>24){
+            if(diff<24){
                 printf("ne paux pas suprimer votre reclamation apre 24h ! votre reclamtion a cree a : %s",claims[i].date);
                 return;
-            }
+            }else{
 
         if (claims[i].id == claimID && strcmp(claims[i].clientnom, clientnom) == 0) {
             for (int j = i; j < count - 1; j++) {
@@ -316,6 +318,7 @@ void deleteMyrecla(char *clientnom) {
             printf("reclamation supprimee \n");
             return;
         }
+            }
     }
     printf("reclamation introuvable ou appartenant pas a %s.\n", clientnom);
 }
