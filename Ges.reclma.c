@@ -118,7 +118,7 @@ int signin(char *clientName) {
 }
 
     void Priorite(recla *reclamation) {
-    if (strstr(reclamation->description, "urgent") != NULL) {
+    if (strstr(reclamation->description, "urgent") != NULL)  {
         strcpy(reclamation->priorite, "haute");
         strcpy(reclamation->status, "en cours");
     } else if (strstr(reclamation->description, "rapide") != NULL) {
@@ -158,7 +158,7 @@ void addrecla(char *clientName) {
 
     time_t now = time(NULL);
     struct tm *t = localtime(&now);
-    strftime(newrecla.date, sizeof(newrecla.date), "%Y-%m-%d", t);
+    strftime(newrecla.date, sizeof(newrecla.date), "%Y-%m-%d",t);
 
     claims[count++] = newrecla;
     printf("reclamation ajoute succes pour ID: %d et priorite : %s\n", newrecla.id, newrecla.priorite);
@@ -269,7 +269,15 @@ void modifyMyrecla(char *clientName) {
     scanf("%d", &claimID);
     getchar();
 
+
     for (int i = 0; i < count; i++) {
+            time_t currtime = time(NULL);
+            double diff = difftime(currtime,claims[i].date)/3600.0;
+
+            if(diff>24){
+                printf("tu ne peux pas modifer votre reclamtion apres 24h ! votre reclamation a cree a %s ",claims[i].date);
+                return ;
+            }
         if (claims[i].id == claimID && strcmp(claims[i].clientnom, clientName) == 0) {
             printf("veuillez entrer nouveau reason pour reclamation: ");
             fgets(claims[i].reason, sizeof(claims[i].reason), stdin);
@@ -286,14 +294,21 @@ void modifyMyrecla(char *clientName) {
     printf("reclamation introuvable ou appartenant pas a %s.\n", clientName);
 }
 
-void deleteMyrecla(char *clientName) {
+void deleteMyrecla(char *clientnom) {
     int claimID;
     printf("veuillez entrer reclamation ID pour suprimee: ");
     scanf("%d", &claimID);
     getchar();
 
     for (int i = 0; i < count; i++) {
-        if (claims[i].id == claimID && strcmp(claims[i].clientnom, clientName) == 0) {
+            time_t cuurtime = time(NULL);
+             double diff = difftime(cuurtime,claims[i].date)/3600;
+            if(diff>24){
+                printf("ne paux pas suprimer votre reclamation apre 24h ! votre reclamtion a cree a : %s",claims[i].date);
+                return;
+            }
+
+        if (claims[i].id == claimID && strcmp(claims[i].clientnom, clientnom) == 0) {
             for (int j = i; j < count - 1; j++) {
                 claims[j] = claims[j + 1];
             }
@@ -302,7 +317,7 @@ void deleteMyrecla(char *clientName) {
             return;
         }
     }
-    printf("reclamation introuvable ou n'appartenant pas a %s.\n", clientName);
+    printf("reclamation introuvable ou appartenant pas a %s.\n", clientnom);
 }
 int cate(const char *description) {
     if (strstr(description, "urgent") != NULL) {
@@ -588,7 +603,9 @@ void agentMenu(char *agentName) {
 int signinAdmin() {
     char username[20];
     char password[20];
-    printf("veuillez entrer admin username: ");
+    int n =0;
+    while(n<3){
+    printf("veillez entrer admin username: ");
     fgets(username, sizeof(username), stdin);
     username[strcspn(username, "\n")] = 0;
     printf("veuillez entrer admin mot de pass : ");
@@ -601,9 +618,18 @@ int signinAdmin() {
         return 1;
     } else {
         printf("\nla connexion de admin a echoue essayez au nouveau \n");
+        n++;
         printf("----------------------------------------------------\n");
-        return 0;
+
     }
+    if (n == 3) {
+            printf("\nattendez 10 secondes ...\n");
+            Sleep(10000);
+        }
+
+    }
+    return 0;
+
 }
 
 int main() {
@@ -631,12 +657,12 @@ int main() {
                 signup();
                 break;
             case 3: {
-                char clientName[20];
-                int role = signin(clientName);
+                char clientnom[20];
+                int role = signin(clientnom);
                 if (role == 0) {
-                    clientMenu(clientName);
+                    clientMenu(clientnom);
                 } else if (role == 1) {
-                    agentMenu(clientName);
+                    agentMenu(clientnom);
                 }
                 break;
             }
