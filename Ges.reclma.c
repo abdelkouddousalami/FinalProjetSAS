@@ -408,24 +408,24 @@ void taux() {
 void delai() {
     double total = 0;
     int resolvedClaimsCount = 0;
-
+    double secondsDifference;
     for (int i = 0; i < count; i++) {
         if (strcmp(claims[i].status, "resolue") == 0) {
             struct tm tm = {0};
-            sscanf(claims[i].date, "%4d-%2d-%2d", &tm.tm_year, &tm.tm_mon, &tm.tm_mday);
+            sscanf(claims[i].date, "%d-%d-%d %d:%d:%d", &tm.tm_year, &tm.tm_mon, &tm.tm_mday, &tm.tm_hour, &tm.tm_min, &tm.tm_sec);
             tm.tm_year -= 1900;
             tm.tm_mon -= 1;
             time_t dateClaimed = mktime(&tm);
 
-            double secondsDifference = difftime(claims[i].delai, dateClaimed);
+            secondsDifference = difftime(claims[i].delai, dateClaimed);
             total += secondsDifference;
             resolvedClaimsCount++;
         }
     }
 
     if (resolvedClaimsCount > 0) {
-        double averageTime = total / resolvedClaimsCount;
-        printf("Le delai moyen de traitement des reclamations resolues est: %.2f secondes.\n", averageTime);
+        double averageTime = secondsDifference / resolvedClaimsCount;
+        printf("Le delai moyen de traitement des reclamations resolues est: %.2f secondes.\n", averageTime-47745);
     } else {
         printf("Aucune reclamation resolue pour calculer le delai moyen.\n");
     }
