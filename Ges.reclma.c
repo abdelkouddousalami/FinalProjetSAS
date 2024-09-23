@@ -248,10 +248,18 @@ void searchBYidCat() {
 
 void viewMyrecla(char *clientName) {
     int found = 0;
+    printf("\n=============================================\n");
+    printf("       RECLAMATIONS DE : %s ***\n",clientName);
+    printf("=============================================\n");
     for (int i = 0; i < count; i++) {
         if (strcmp(claims[i].clientnom, clientName) == 0) {
-            printf("reclamation ID: %d\nReason: %s\nDescription: %s\nCategory: %s\nStatut: %s\nDate: %s\n",
-                   claims[i].id, claims[i].reason, claims[i].description, claims[i].category, claims[i].status, claims[i].date);
+            printf("| Reclamation ID : %d |\n", claims[i].id);
+            printf("| Reason         : %s |\n", claims[i].reason);
+            printf("| Description    : %s |\n", claims[i].description);
+            printf("| Categorie      : %s |\n", claims[i].category);
+            printf("| Statut         : %s |\n", claims[i].status);
+            printf("| Date           : %s |\n", claims[i].date);
+            printf("=============================================\n");
             printf("-------------------------\n");
             found = 1;
         }
@@ -345,10 +353,17 @@ void sortrecla() {
         }
     }
 
-    printf("\n=== reclamations triees par priorite ===\n");
+    printf("\n=============================================\n");
+    printf("    RECLAMATIONS TRIEES PAR PRIORITE          |\n");
+    printf("=============================================\n");
     for (int i = 0; i < count; i++) {
-        printf("ID: %d\nNom du client: %s\nDescription: %s\nCategorie: %s\nStatut: %s\nDate: %s\n",
-               claims[i].id, claims[i].clientnom, claims[i].description, claims[i].category, claims[i].status, claims[i].date);
+        printf("| ID          : %d |\n", claims[i].id);
+        printf("| Nom du client: %s |\n", claims[i].clientnom);
+        printf("| Description  : %s |\n", claims[i].description);
+        printf("| Categorie    : %-s|\n", claims[i].category);
+        printf("| Statut       : %s |\n", claims[i].status);
+        printf("| Date         : %s |\n", claims[i].date);
+        printf("=============================================\n");
         printf("-------------------------\n");
     }
 }
