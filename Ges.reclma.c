@@ -31,6 +31,7 @@ recla claims[MAX];
 User users[MAX];
 int count = 0;
 int userCount = 0;
+time_t lastrappo =0;
 
 int validatePassword(const char *username, const char *password) {
     if (username == NULL || password == NULL) {
@@ -399,13 +400,9 @@ void taux() {
         printf("aucune reclamation soumise.\n");
     }
 }
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-
 void delai() {
+
+
     double total = 0;
     int resolvedClaimsCount = 0;
     double secondsDifference;
@@ -425,7 +422,7 @@ void delai() {
 
     if (resolvedClaimsCount > 0) {
         double averageTime = secondsDifference / resolvedClaimsCount;
-        printf("Le delai moyen de traitement des reclamations resolues est: %.2f secondes.\n", averageTime-47745);
+        printf("Le delai moyen de traitement des reclamations resolues est: %.2f secondes.\n", averageTime);
     } else {
         printf("Aucune reclamation resolue pour calculer le delai moyen.\n");
     }
@@ -437,56 +434,48 @@ void rapport() {
                 printf("\n======================= delai moyenne =======================\n\n");
                 delai();
                 printf("\n\n================================================================\n\n");
-
-                    time_t now = time(NULL);
-                    struct tm *t = localtime(&now);
-                    char currentDate[20];
-                    strftime(currentDate, sizeof(currentDate), "%Y-%m-%d",t);
-
-                    FILE *file = fopen("rapport_journalier.txt","w");
-                        if (file == NULL) {
-                            printf("Erreur lors de l'ouverture du fichier.\n");
-                            return;
-                        }
-
-                        fprintf(file, "============ Rapport journalier pour le %s ===========\n\n", currentDate);
-
-                        int foundNewClaims = 0;
-                        int foundResolvedClaims = 0;
-
-                        fprintf(file, "\n--- Nouvelles reclamations soumises aujourdhui ---\n\n\n");
-                            for (int i = 0; i < count; i++) {
-                                if (strcmp(claims[i].date, currentDate) == 0) {
-                                    fprintf(file, "Claim ID: %d\nClient: %s\nDescription: %s\nStatut: %s\nDate: %s\n",
-                                    claims[i].id, claims[i].clientnom, claims[i].description, claims[i].status, claims[i].date);
-                                    fprintf(file, "-------------------------\n\n");
-                                    foundNewClaims = 1;
-                                }
-                            }
-
-                if (!foundNewClaims) {
-                    fprintf(file, "Aucune nouvelle reclamation aujourdhui.\n");
-                }
-
-                fprintf(file, "\n===== reclamations resolues aujourd'hui ======\n");
-                for (int i = 0; i < count; i++) {
-                    if (strcmp(claims[i].status, "resolue") == 0 && strcmp(claims[i].date, currentDate) == 0) {
-                        fprintf(file, "Claim ID: %d\nClient: %s\nDescription: %s\nStatut: %s\nDate: %s\n",
-                            claims[i].id, claims[i].clientnom, claims[i].description, claims[i].status, claims[i].date);
-                            fprintf(file, "-------------------------\n");
-                            foundResolvedClaims = 1;
-                    }
-                }
-
-                if (!foundResolvedClaims) {
-                    fprintf(file, "Aucune reclamation resolue aujourd'hui.\n");
-                }
-
-                fclose(file);
-
-    printf("\nRapport journalier genere avec succes dans 'rapport_journalier.txt'.\n");
 }
 
+ void generateDailyReport() {
+    time_t currentTime;
+    time(&currentTime);
+
+    if (difftime(currentTime, lastrappo) >= 30) {
+        FILE *reportFile = fopen("daily_report.txt", "w");
+        if (reportFile == NULL) {
+            printf("error.\n");
+            return;
+        }
+
+        fprintf(reportFile, "==================Daily Report %s=====================\n", ctime(&currentTime));
+        fprintf(reportFile, "----------------------------------\n");
+        fprintf(reportFile, "New reclamation:\n");
+
+        for (int i = 0; i < count; i++) {
+            if (strcmp(claims[i].status, "resolue") == 0) {
+                fprintf(reportFile, "Claim ID: %d\nClient: %s\nReason: %s\nDescription: %s\nDate: %s\n\n",
+                        claims[i].id, claims[i].clientnom, claims[i].reason, claims[i].description, claims[i].date);
+            }
+        }
+
+        fprintf(reportFile, "----------------------------------\n");
+        fprintf(reportFile, "reclamation resolue:\n");
+
+        for (int i = 0; i < count; i++) {
+            if (strcmp(claims[i].status, "resolue") == 0) {
+                fprintf(reportFile, "Claim ID: %d\nClient: %s\nReason: %s\nDescription: %s\nDate: %s\n\n",
+                        claims[i].id, claims[i].clientnom, claims[i].reason, claims[i].description, claims[i].date);
+            }
+        }
+
+        fclose(reportFile);
+        printf("Daily report generated.\n");
+
+        lastrappo = currentTime;
+    } else {
+        printf("Ce nest pas encore lheure du rapport , rapport dernier jour a ete generated\n");
+    }
+}
 
 void adminMenu() {
     int choice;
@@ -545,6 +534,7 @@ void adminMenu() {
                 break;
             case 6 :
                 rapport();
+                generateDailyReport();
                 break;
             case 0:
                 printf("deconnexion comme admin...\n");
@@ -654,6 +644,7 @@ int signinAdmin() {
 }
 
 int main() {
+    time(&lastrappo);
 
     int choice;
     do {
