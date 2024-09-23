@@ -440,7 +440,7 @@ void rapport() {
     time_t currentTime;
     time(&currentTime);
 
-    if (difftime(currentTime, lastrappo) >= 30) {
+    if (difftime(currentTime, lastrappo) >= 86400) {           //86400 seconde = 24h
         FILE *reportFile = fopen("daily_report.txt", "w");
         if (reportFile == NULL) {
             printf("error.\n");
