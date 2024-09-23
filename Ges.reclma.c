@@ -279,7 +279,7 @@ void modifyMyrecla(char *clientName) {
 
     for (int i = 0; i < count; i++) {
              time_t currtime = time(NULL);
-            double diff = (difftime(currtime,claims[i].date))/3600.0;
+            double diff = (difftime(currtime,(time_t)claims[i].date))/3600.0;
 
             if(diff<24){
                 printf("tu ne peux pas modifer votre reclamtion apres 24h ! votre reclamation a cree a %s ",claims[i].date);
@@ -311,7 +311,7 @@ void deleteMyrecla(char *clientnom) {
 
     for (int i = 0; i < count; i++) {
             time_t cuurtime = time(NULL);
-             double diff = difftime(cuurtime,claims[i].date)/3600;
+             double diff = difftime(cuurtime,(time_t)claims[i].date)/3600;
             if(diff<24){
                 printf("ne paux pas suprimer votre reclamation apre 24h ! votre reclamtion a cree a : %s",claims[i].date);
                 return;
