@@ -18,7 +18,7 @@ typedef struct {
     char priorite[20];
     char status[20];
     char date[20];
-    char delai[20];
+    time_t delai;
 } recla;
 
 typedef struct {
@@ -61,7 +61,6 @@ int validatePassword(const char *username, const char *password) {
 
     return upper && lower && digit && special;
 }
-
 
 void signup() {
     char username[20], password[20];
@@ -155,12 +154,11 @@ void addrecla(char *clientName) {
 
     strcpy(newrecla.status, "en cours");
     Priorite(&newrecla);
+     time_t now = time(NULL);
+     struct tm *t = localtime(&now);
+      strftime(newrecla.date, sizeof(newrecla.date), "%Y-%m-%d", t);
+      claims[count++] = newrecla;
 
-    time_t now = time(NULL);
-    struct tm *t = localtime(&now);
-    strftime(newrecla.date, sizeof(newrecla.date), "%Y-%m-%d",t);
-
-    claims[count++] = newrecla;
     printf("reclamation ajoute succes pour ID: %d et priorite : %s\n", newrecla.id, newrecla.priorite);
 }
 
@@ -272,7 +270,7 @@ void modifyMyrecla(char *clientName) {
 
     for (int i = 0; i < count; i++) {
              time_t currtime = time(NULL);
-            double diff = difftime(currtime,claims[i].date)/3600.0;
+            double diff = (difftime(currtime,claims[i].date))/3600.0;
 
             if(diff<24){
                 printf("tu ne peux pas modifer votre reclamtion apres 24h ! votre reclamation a cree a %s ",claims[i].date);
@@ -378,10 +376,8 @@ void processrecla() {
             claims[i].status[strcspn(claims[i].status, "\n")] = 0;
 
             if (strcmp(claims[i].status, "resolue") == 0) {
-                time_t now = time(NULL);
-                struct tm *t = localtime(&now);
-                strftime(claims[i].delai, sizeof(claims[i].delai), "%Y-%m-%d", t);
-            }
+             claims[i].delai = time(NULL);
+           }
 
             printf("reclamation status modified succes.\n");
             return;
@@ -403,80 +399,99 @@ void taux() {
         printf("aucune reclamation soumise.\n");
     }
 }
-void avergt() {
-    int total = 0;
-    int resoCount = 0;
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
+void delai() {
+    double total = 0;
+    int resolvedClaimsCount = 0;
 
     for (int i = 0; i < count; i++) {
-        if (strcmp(claims[i].status, "resolue")==0) {
-            int difr = 1;
-            resoCount++;
-            claims[i].delai;
-            resoCount++;
+        if (strcmp(claims[i].status, "resolue") == 0) {
+            struct tm tm = {0};
+            sscanf(claims[i].date, "%4d-%2d-%2d", &tm.tm_year, &tm.tm_mon, &tm.tm_mday);
+            tm.tm_year -= 1900;
+            tm.tm_mon -= 1;
+            time_t dateClaimed = mktime(&tm);
 
+            double secondsDifference = difftime(claims[i].delai, dateClaimed);
+            total += secondsDifference;
+            resolvedClaimsCount++;
         }
     }
-    if (resoCount > 0) {
-        int ave = total / resoCount;
-                if (ave == 0) {
-            printf("delai moyen de traitement des reclamations pour resulation est : less dun jour \n");
-        } else if (ave == 1) {
-            printf("delai moyen de traitement des reclamations pour resolation est : un jour \n");
-        } else {
-            printf("delai moyen de traitement des reclamations pour resulation est: %d jours \n", ave);
-        }
+
+    if (resolvedClaimsCount > 0) {
+        double averageTime = total / resolvedClaimsCount;
+        printf("Le delai moyen de traitement des reclamations resolues est: %.2f secondes.\n", averageTime);
     } else {
-        printf("aucun reclamation resolue pour calculer le moyen \n");
+        printf("Aucune reclamation resolue pour calculer le delai moyen.\n");
     }
 }
-
 void rapport() {
-    time_t now = time(NULL);
-    struct tm *t = localtime(&now);
-    char datecurr[20];
-    strftime(datecurr, sizeof(datecurr), "%Y-%m-%d", t);
-
-    printf("======= Rapport journalier pour la date: %s =======\n",datecurr);
-
-    int found = 0, resolu = 0;
-
-    for (int i = 0; i < count; i++) {
-        if (strcmp(claims[i].date,datecurr) == 0) {
-            if (strcmp(claims[i].status, "resolue") == 0) {
-                printf("reclamation resolue aujourdhui:\n");
-                printf("ID: %d, Client: %s, Motif: %s, Description: %s, Categorie: %s, Date: %s\n",
-                    claims[i].id, claims[i].clientnom, claims[i].reason, claims[i].description, claims[i].category, claims[i].date);
-                printf("\n==========================================================\n");
+                printf("\n=========================== taux =============================\n");
                 printf("\n");
                 taux();
-                printf("\n-------------------------------------------\n\n");
-                avergt();
-                printf("\n\n========================================================\n\n");
-                resolu = 1;
-            } else {
-                printf("les reclamation aujourdhui :\n");
-                printf("ID: %d, Client: %s, Motif: %s, Description: %s, Categorie: %s, Statut: %s, Date: %s\n",
-                    claims[i].id, claims[i].clientnom, claims[i].reason, claims[i].description, claims[i].category, claims[i].status, claims[i].date);
-                printf("-------------------------\n");
-                found = 1;
-            }
-        }
-    }
+                printf("\n======================= delai moyenne =======================\n\n");
+                delai();
+                printf("\n\n================================================================\n\n");
 
-    if (!found) {
-        printf("aucun rrclamation aujourdhui.\n");
-    }
+                    time_t now = time(NULL);
+                    struct tm *t = localtime(&now);
+                    char currentDate[20];
+                    strftime(currentDate, sizeof(currentDate), "%Y-%m-%d",t);
 
-    if (!resolu) {
-        printf("aucune reclamation resolue aujourdhui.\n");
-    }
+                    FILE *file = fopen("rapport_journalier.txt","w");
+                        if (file == NULL) {
+                            printf("Erreur lors de l'ouverture du fichier.\n");
+                            return;
+                        }
+
+                        fprintf(file, "============ Rapport journalier pour le %s ===========\n\n", currentDate);
+
+                        int foundNewClaims = 0;
+                        int foundResolvedClaims = 0;
+
+                        fprintf(file, "\n--- Nouvelles reclamations soumises aujourdhui ---\n\n\n");
+                            for (int i = 0; i < count; i++) {
+                                if (strcmp(claims[i].date, currentDate) == 0) {
+                                    fprintf(file, "Claim ID: %d\nClient: %s\nDescription: %s\nStatut: %s\nDate: %s\n",
+                                    claims[i].id, claims[i].clientnom, claims[i].description, claims[i].status, claims[i].date);
+                                    fprintf(file, "-------------------------\n\n");
+                                    foundNewClaims = 1;
+                                }
+                            }
+
+                if (!foundNewClaims) {
+                    fprintf(file, "Aucune nouvelle reclamation aujourdhui.\n");
+                }
+
+                fprintf(file, "\n===== reclamations resolues aujourd'hui ======\n");
+                for (int i = 0; i < count; i++) {
+                    if (strcmp(claims[i].status, "resolue") == 0 && strcmp(claims[i].date, currentDate) == 0) {
+                        fprintf(file, "Claim ID: %d\nClient: %s\nDescription: %s\nStatut: %s\nDate: %s\n",
+                            claims[i].id, claims[i].clientnom, claims[i].description, claims[i].status, claims[i].date);
+                            fprintf(file, "-------------------------\n");
+                            foundResolvedClaims = 1;
+                    }
+                }
+
+                if (!foundResolvedClaims) {
+                    fprintf(file, "Aucune reclamation resolue aujourd'hui.\n");
+                }
+
+                fclose(file);
+
+    printf("\nRapport journalier genere avec succes dans 'rapport_journalier.txt'.\n");
 }
 
 
 void adminMenu() {
     int choice;
     do {
-        printf("\n========== Admin Menu ==========\n");
+        printf("\n==================== Admin Menu ====================\n");
         printf("1 - afficher toutes les reclamations\n");
         printf("2 - traiter la reclamation\n");
         printf("3 - ajouter un nouveau client\n");
@@ -484,6 +499,7 @@ void adminMenu() {
         printf("5 - search par ID ou category ou username ou date\n");
         printf("6 - generer une rapport\n");
         printf("0. deconnexion\n");
+        printf("=======================================================\n");
         printf("veuillez entrer votre choice: ");
         scanf("%d", &choice);
         getchar();
@@ -542,12 +558,13 @@ void adminMenu() {
 void clientMenu(char *clientName) {
     int choice;
     do {
-        printf("\n========== Client Menu ==========\n");
+        printf("\n==================== Client Menu ====================\n");
         printf("1. ajouter une reclamation\n");
         printf("2. afficher mes reclamations\n");
         printf("3. modifier ma reclamation\n");
         printf("4. supprimer ma reclamation\n");
         printf("0. deconnexion\n");
+        printf("=======================================================\n");
         printf("veuillez entrer votre choice: ");
         scanf("%d", &choice);
         getchar();
@@ -578,12 +595,13 @@ void clientMenu(char *clientName) {
 void agentMenu(char *agentName) {
     int choice;
     do {
-        printf("\n========== Agent Menu ==========\n");
+        printf("\n==================== Agent Menu ====================\n");
         printf("1. Afficher toute les reclamations\n");
         printf("2. Traiter la reclamation\n");
         printf("0. deconnexion\n");
         printf("veuillez entrer votre choice: ");
-        scanf("%d", &choice);
+        printf("======================================================\n");
+        scanf("%d",&choice);
         printf("\n*************************\n\n");
         getchar();
 
