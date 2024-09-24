@@ -193,6 +193,7 @@ void searchBYidCat() {
             for (int i = 0; i < count; i++) {
                 if (claims[i].id == searchID) {
                     printf("reclamation trouve:\n");
+                    printf("---------------------------------\n\n");
                     printf("ID: %d\nNom du client: %s\nMotif: %s\nDescription: %s\nCategorie: %s\nStatut: %s\nDate: %s\n",
                            claims[i].id, claims[i].clientnom, claims[i].reason, claims[i].description, claims[i].category, claims[i].status, claims[i].date);
                     found = 1;
@@ -234,7 +235,7 @@ void searchBYidCat() {
                     for (int i = 0; i < count; i++) {
                         if (strcmp(claims[i].date, date) == 0) {
                         printf("reclamation trouvee:\n");
-                        printf("ID: %d, Client: %s, Motif: %s, Description: %s, Categorie: %s, Statut: %s, Date: %s\n",
+                        printf("ID: %d, \nClient: %s, \nMotif: %s, \nDescription: %s, \nCategorie: %s, \nStatut: %s, \nDate: %s\n",
                         claims[i].id, claims[i].clientnom, claims[i].reason, claims[i].description, claims[i].category, claims[i].status, claims[i].date);
             }
         }
@@ -667,16 +668,26 @@ int main() {
     time(&lastrappo);
 
     int choice;
+    char input[10];
     do {
         printf("\n============================ MENU ============================\n");
         printf("-     1 - Connectez vous en tant que admin                   -\n");
         printf("-     2 - S'inscrire en tant que client                      -\n");
         printf("-     3 - Connectez vous en tant que client                  -\n");
-        printf("-     4 - Exit                                               -\n");
+        printf("-     0 - Exit                                               -\n");
         printf("==============================================================\n");
         printf("Entrez votre choice: ");
-        scanf("%d",&choice);
-        getchar();
+        if (fgets(input, sizeof(input), stdin) == NULL) {
+            printf("Erreur de lecture. Veuillez reessayer.\n");
+            continue;
+        }
+
+         input[strcspn(input, "\n")] = 0;
+
+         if (sscanf(input,"%d", &choice) != 1) {
+            printf("Entree invalide. Veuillez entrer un nombre.\n");
+            continue;
+        }
         printf("\n*************************\n\n");
 
         switch (choice) {
