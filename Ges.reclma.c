@@ -9,6 +9,36 @@
 
                                     //admin username : abdo  || admin mot de pass : Abdo@3214
 
+
+
+                                    /*
+                                    int validatePassword(const char *username, const char *password);
+                                    void signup(recla *reclamation);
+                                    int signin(char *clientName);
+                                    void Priorite();
+                                    void addrecla(char *clientName);
+                                    void searchBY_id_Cat_usnm_date();
+                                    void viewMyrecla(char *clientName);
+                                    void modifyMyrecla(char *clientName);
+                                    void deleteMyrecla(char *clientnom);
+                                    int cate(const char *description);
+                                    void sortrecla();
+                                    void viewAllrecla();
+                                    void processrecla();
+                                    void taux();
+                                    void delai();
+                                    void rapport();
+                                    void generateDailyReport();
+                                    void adminMenu();
+                                    void clientMenu(char *clientName);
+                                    void agentMenu(char *agentName);
+                                    int signinAdmin();
+                                    int main();
+                                    */
+
+
+
+
 typedef struct {
     int id;
     char clientnom[50];
@@ -34,6 +64,8 @@ int count = 0;
 int userCount = 0;
 time_t lastrappo =0;
 time_t moy =0;
+
+
 
 int validatePassword(const char *username, const char *password) {
     if (username == NULL || password == NULL) {
@@ -167,7 +199,7 @@ void addrecla(char *clientName) {
 }
 
 
-void searchBYidCat() {
+void searchBY_id_Cat_usnm_date() {
     int choice;
     char searchCat[50];
     char username[50];
@@ -224,10 +256,11 @@ void searchBYidCat() {
                     for (int i = 0; i < count; i++) {
                         if (strcmp(claims[i].clientnom, username) == 0) {
                             printf("reclamation trouve:\n");
-                            printf("ID: %d, Client: %s, Motif: %s, Description: %s, Categorie: %s, Statut: %s, Date: %s\n",
+                            printf("ID: %d, \nClient: %s, \nMotif: %s, \nDescription: %s, \nCategorie: %s, \nStatut: %s, \nDate: %s\n",
                             claims[i].id, claims[i].clientnom, claims[i].reason, claims[i].description, claims[i].category, claims[i].status, claims[i].date);
             }
         }
+        break;
         case  4 :
             printf("entrer la date de la reclamation (format YYYY-MM-DD): ");
             fgets(date, sizeof(date), stdin);
@@ -239,7 +272,7 @@ void searchBYidCat() {
                         claims[i].id, claims[i].clientnom, claims[i].reason, claims[i].description, claims[i].category, claims[i].status, claims[i].date);
             }
         }
-
+        break;
         default:
             printf("Choice invalide. Veuillez ressayer.\n");
             return;
@@ -253,7 +286,7 @@ void searchBYidCat() {
 void viewMyrecla(char *clientName) {
     int found = 0;
     printf("\n=============================================\n");
-    printf("       RECLAMATIONS DE : %s ***\n",clientName);
+    printf("       RECLAMATIONS DE : |||%s \n",clientName);
     printf("=============================================\n");
     for (int i = 0; i < count; i++) {
         if (strcmp(claims[i].clientnom, clientName) == 0) {
@@ -431,7 +464,6 @@ void delai() {
             sscanf(claims[i].date, "%d-%d-%d %d:%d:%d", &tm.tm_year, &tm.tm_mon, &tm.tm_mday, &tm.tm_hour, &tm.tm_min, &tm.tm_sec);
             tm.tm_year -= 1900;
             tm.tm_mon -= 1;
-            time_t dateClaimed = mktime(&tm);
 
             secondsDifference = difftime(claims[i].delai,moy);
             total += secondsDifference;
@@ -459,7 +491,7 @@ void rapport() {
     time_t currentTime;
     time(&currentTime);
 
-    if (difftime(currentTime, lastrappo) >= 86400) {           //86400 seconde = 24h
+    if (difftime(currentTime, lastrappo) >= 60) {
         FILE *reportFile = fopen("daily_report.txt", "w");
         if (reportFile == NULL) {
             printf("error.\n");
@@ -549,7 +581,7 @@ void adminMenu() {
                 break;
             }
             case 5 :
-                searchBYidCat();
+                searchBY_id_Cat_usnm_date();
                 break;
             case 6 :
                 rapport();
